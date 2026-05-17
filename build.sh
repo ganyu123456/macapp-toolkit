@@ -16,6 +16,12 @@ rm -rf "$APP_BUNDLE"
 mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
 
+# 生成应用图标
+echo "  → 生成图标..."
+python3 "$BUILD_DIR/generate_icon.py" > /dev/null
+iconutil -c icns "$BUILD_DIR/AppIcon.iconset" -o "$RESOURCES_DIR/AppIcon.icns"
+echo "  → 图标生成完成"
+
 # 编译 Swift 源码为可执行文件
 echo "  → 编译中..."
 swiftc \
@@ -56,6 +62,8 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << 'PLIST'
     <string>1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
+            <key>CFBundleIconFile</key>
+            <string>AppIcon</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>NSHighResolutionCapable</key>
