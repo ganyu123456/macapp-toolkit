@@ -7,6 +7,7 @@ struct MainApp: App {
     @StateObject private var calcModel = CalculatorModel()
     @StateObject private var timerModel = TimerModel()
     @StateObject private var newsModel = NewsModel()
+    @StateObject private var wecomPushModel = WeComPushModel()
 
     @State private var selectedTab = 0
 
@@ -17,6 +18,7 @@ struct MainApp: App {
                     Text("计算器").tag(0)
                     Text("计时器").tag(1)
                     Text("新闻").tag(2)
+                    Text("推送").tag(3)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
@@ -34,6 +36,9 @@ struct MainApp: App {
                     case 2:
                         NewsTab()
                             .environmentObject(newsModel)
+                    case 3:
+                        WeComPushTab()
+                            .environmentObject(wecomPushModel)
                     default:
                         EmptyView()
                     }
@@ -48,6 +53,7 @@ struct MainApp: App {
                 case 0: setWindowSize(width: 320, height: 500)
                 case 1: setWindowSize(width: 380, height: 520)
                 case 2: setWindowSize(width: 700, height: 560)
+                case 3: setWindowSize(width: 500, height: 600)
                 default: break
                 }
             }
