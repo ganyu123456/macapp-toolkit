@@ -285,9 +285,8 @@ struct WeComPushTab: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 12) {
-                    // Webhook settings button
+            VStack(spacing: 12) {
+                // Webhook settings button
                     HStack {
                         Spacer()
                         Button(action: { showSettings.toggle() }) {
@@ -394,9 +393,8 @@ struct WeComPushTab: View {
                     // Schedule section
                     scheduleSection
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
 
             Divider()
 
