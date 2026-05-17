@@ -16,6 +16,11 @@ rm -rf "$APP_BUNDLE"
 mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
 
+# 复制 xterm.js 终端资源
+echo "  → 复制 xterm 资源..."
+cp -R "$BUILD_DIR/Resources/xterm" "$RESOURCES_DIR/"
+echo "  → xterm 资源复制完成"
+
 # 生成应用图标
 echo "  → 生成图标..."
 python3 "$BUILD_DIR/generate_icon.py" > /dev/null

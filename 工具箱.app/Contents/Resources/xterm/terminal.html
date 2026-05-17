@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="xterm.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #1e1e1e; }
+#terminal { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div id="terminal"></div>
+<script src="xterm.js"></script>
+<script src="xterm-addon-fit.js"></script>
+<script>
+var term = new Terminal({
+    cursorBlink: true,
+    cursorStyle: 'bar',
+    fontSize: 13,
+    fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+    theme: {
+        background: '#1e1e1e',
+        foreground: '#d4d4d4',
+        cursor: '#ffffff',
+        selectionBackground: '#264f78',
+        black: '#000000',
+        red: '#cd3131',
+        green: '#0dbc79',
+        yellow: '#e5e510',
+        blue: '#2472c8',
+        magenta: '#bc3fbc',
+        cyan: '#11a8cd',
+        white: '#e5e5e5',
+        brightBlack: '#666666',
+        brightRed: '#f14c4c',
+        brightGreen: '#23d18b',
+        brightYellow: '#f5f543',
+        brightBlue: '#3b8eea',
+        brightMagenta: '#d670d6',
+        brightCyan: '#29b8db',
+        brightWhite: '#ffffff'
+    },
+    allowProposedApi: true,
+    allowTransparency: false,
+    scrollback: 5000
+});
+
+var fitAddon = new FitAddon.FitAddon();
+term.loadAddon(fitAddon);
+term.open(document.getElementById('terminal'));
+fitAddon.fit();
+
+// Send keystrokes to Swift
+term.onData(function(data) {
+    window.webkit.messageHandlers.terminalInput.postMessage(data);
+});
+
+// Handle resize
+term.onResize(function(size) {
+    window.webkit.messageHandlers.terminalResize.postMessage({
+        cols: size.cols,
+        rows: size.rows
+    });
+});
+
+// Receive data from Swift
+window.writeToTerminal = function(data) {
+    term.write(data);
+};
+
+// Resize from Swift
+window.resizeTerminal = function(cols, rows) {
+    term.resize(cols, rows);
+};
+
+// Focus terminal on load
+term.focus();
+
+window.addEventListener('resize', function() {
+    fitAddon.fit();
+});
+</script>
+</body>
+</html>

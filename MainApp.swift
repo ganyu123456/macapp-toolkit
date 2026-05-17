@@ -8,7 +8,7 @@ struct MainApp: App {
     @StateObject private var timerModel = TimerModel()
     @StateObject private var newsModel = NewsModel()
     @StateObject private var wecomPushModel = WeComPushModel()
-    @StateObject private var terminalModel = TerminalModel()
+    @StateObject private var terminalCoordinator = TerminalCoordinator()
 
     @State private var selectedTab = 0
 
@@ -42,8 +42,7 @@ struct MainApp: App {
                         WeComPushTab()
                             .environmentObject(wecomPushModel)
                     case 4:
-                        TerminalTab()
-                            .environmentObject(terminalModel)
+                        TerminalContainer(coordinator: terminalCoordinator)
                     default:
                         EmptyView()
                     }
