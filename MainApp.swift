@@ -53,7 +53,7 @@ struct MainApp: App {
                 case 0: setWindowSize(width: 320, height: 500)
                 case 1: setWindowSize(width: 380, height: 520)
                 case 2: setWindowSize(width: 700, height: 560)
-                case 3: setWindowSize(width: 500, height: 600)
+                case 3: setWindowSize(width: 500, height: 680)
                 default: break
                 }
             }
