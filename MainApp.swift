@@ -2,6 +2,10 @@ import SwiftUI
 import AppKit
 
 // MARK: - App Entry
+
+private let windowWidthRatio: CGFloat = 2000.0 / 3456.0
+private let windowHeightRatio: CGFloat = 1430.0 / 2158.0
+
 @main
 struct MainApp: App {
     @StateObject private var calcModel = CalculatorModel()
@@ -57,29 +61,26 @@ struct MainApp: App {
                 .frame(minWidth: 320, minHeight: 420)
             }
             .onAppear {
-                setWindowSize(width: 320, height: 500)
+                centerAndSizeWindow()
             }
-            .onChange(of: selectedTab) { tab in
-                switch tab {
-                case 0: setWindowSize(width: 320, height: 500)
-                case 1: setWindowSize(width: 380, height: 520)
-                case 2: setWindowSize(width: 700, height: 560)
-                case 3: setWindowSize(width: 500, height: 680)
-                case 4: setWindowSize(width: 700, height: 500)
-                case 5: setWindowSize(width: 400, height: 520)
-                default: break
-                }
-            }
+            .onChange(of: selectedTab) { _ in }
         }
         .windowResizability(.contentSize)
     }
 
-    private func setWindowSize(width: CGFloat, height: CGFloat) {
+    private func centerAndSizeWindow() {
         DispatchQueue.main.async {
-            guard let window = NSApplication.shared.windows.first else { return }
-            var frame = window.frame
-            frame.size = CGSize(width: width, height: height)
-            window.setFrame(frame, display: true, animate: true)
+            guard let window = NSApplication.shared.windows.first,
+                  let screen = window.screen ?? NSScreen.main else { return }
+
+            let screenFrame = screen.visibleFrame
+            let width = screenFrame.width * windowWidthRatio
+            let height = screenFrame.height * windowHeightRatio
+            let x = screenFrame.midX - width / 2
+            let y = screenFrame.midY - height / 2
+
+            window.setFrame(NSRect(x: x, y: y, width: width, height: height),
+                            display: true, animate: false)
             window.title = "工具箱"
             window.titlebarAppearsTransparent = true
             window.styleMask.insert(.fullSizeContentView)

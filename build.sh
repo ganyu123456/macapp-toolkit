@@ -36,6 +36,7 @@ swiftc \
     -framework UserNotifications \
     -framework WebKit \
     -framework AVFoundation \
+    -framework Speech \
     -sdk $(xcrun --show-sdk-path --sdk macosx) \
     -parse-as-library \
     -target arm64-apple-macos13.0 \
@@ -78,6 +79,8 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << 'PLIST'
     <string>public.app-category.utilities</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>工具箱需要访问麦克风以进行录音</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>工具箱需要语音识别权限以将录音转写为文字</string>
 </dict>
 </plist>
 PLIST
