@@ -35,6 +35,7 @@ swiftc \
     -framework AppKit \
     -framework UserNotifications \
     -framework WebKit \
+    -framework AVFoundation \
     -sdk $(xcrun --show-sdk-path --sdk macosx) \
     -parse-as-library \
     -target arm64-apple-macos13.0 \
@@ -75,6 +76,8 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << 'PLIST'
     <true/>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>工具箱需要访问麦克风以进行录音</string>
 </dict>
 </plist>
 PLIST

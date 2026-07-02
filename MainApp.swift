@@ -9,6 +9,7 @@ struct MainApp: App {
     @StateObject private var newsModel = NewsModel()
     @StateObject private var wecomPushModel = WeComPushModel()
     @StateObject private var terminalSessionManager = TerminalSessionManager()
+    @StateObject private var recordingModel = RecordingModel()
 
     @State private var selectedTab = 0
 
@@ -21,6 +22,7 @@ struct MainApp: App {
                     Text("新闻").tag(2)
                     Text("推送").tag(3)
                     Text("终端").tag(4)
+                    Text("录音").tag(5)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
@@ -41,6 +43,9 @@ struct MainApp: App {
                     case 3:
                         WeComPushTab()
                             .environmentObject(wecomPushModel)
+                    case 5:
+                        RecordingTab()
+                            .environmentObject(recordingModel)
                     default:
                         Color.clear
                     }
@@ -61,6 +66,7 @@ struct MainApp: App {
                 case 2: setWindowSize(width: 700, height: 560)
                 case 3: setWindowSize(width: 500, height: 680)
                 case 4: setWindowSize(width: 700, height: 500)
+                case 5: setWindowSize(width: 400, height: 520)
                 default: break
                 }
             }
