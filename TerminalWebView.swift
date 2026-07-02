@@ -1,6 +1,54 @@
 import SwiftUI
 import WebKit
 
+// MARK: - Terminal Session
+
+class TerminalSession: Identifiable, ObservableObject {
+    let id = UUID()
+    @Published var name: String
+    let coordinator: TerminalCoordinator
+
+    init(name: String) {
+        self.name = name
+        self.coordinator = TerminalCoordinator()
+    }
+}
+
+// MARK: - Terminal Session Manager
+
+class TerminalSessionManager: ObservableObject {
+    @Published var sessions: [TerminalSession] = []
+    @Published var selectedSessionId: UUID?
+
+    var activeSession: TerminalSession? {
+        sessions.first { $0.id == selectedSessionId }
+    }
+
+    init() {
+        let defaultSession = TerminalSession(name: "终端 1")
+        sessions = [defaultSession]
+        selectedSessionId = defaultSession.id
+    }
+
+    func addSession() {
+        let count = sessions.count + 1
+        let session = TerminalSession(name: "终端 \(count)")
+        sessions.append(session)
+        selectedSessionId = session.id
+    }
+
+    func removeSession(_ id: UUID) {
+        guard sessions.count > 1 else { return }
+        guard let idx = sessions.firstIndex(where: { $0.id == id }) else { return }
+        let session = sessions[idx]
+        session.coordinator.cleanup()
+        sessions.remove(at: idx)
+        if selectedSessionId == id {
+            selectedSessionId = sessions.last?.id
+        }
+    }
+}
+
 // MARK: - Terminal Coordinator
 class TerminalCoordinator: NSObject, WKScriptMessageHandler, ObservableObject {
     private var masterFD: Int32 = -1
@@ -309,43 +357,145 @@ struct TerminalWebView: NSViewRepresentable {
     }
 }
 
+// MARK: - Session Tab Button
+
+struct SessionTabButton: View {
+    @ObservedObject var session: TerminalSession
+    let isSelected: Bool
+    let isEditing: Bool
+    @Binding var editingName: String
+    let onSelect: () -> Void
+    let onDoubleClick: () -> Void
+    let onCommitRename: () -> Void
+    let onClose: () -> Void
+    let showClose: Bool
+
+    var body: some View {
+        HStack(spacing: 4) {
+            if isEditing {
+                TextField("", text: $editingName)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 11))
+                    .frame(width: 80)
+                    .onSubmit { onCommitRename() }
+            } else {
+                Text(session.name)
+                    .font(.system(size: 11))
+                    .lineLimit(1)
+            }
+
+            if showClose {
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 7, weight: .bold))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(isSelected ? Color.blue.opacity(0.25) : Color.white.opacity(0.05))
+        .cornerRadius(5)
+        .onTapGesture(count: 1, perform: onSelect)
+        .onTapGesture(count: 2, perform: onDoubleClick)
+    }
+}
+
+// MARK: - Session Tab Bar
+
+struct SessionTabBar: View {
+    @ObservedObject var manager: TerminalSessionManager
+    @State private var editingSessionId: UUID?
+    @State private var editingName: String = ""
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 4) {
+                ForEach(manager.sessions) { session in
+                    SessionTabButton(
+                        session: session,
+                        isSelected: session.id == manager.selectedSessionId,
+                        isEditing: editingSessionId == session.id,
+                        editingName: $editingName,
+                        onSelect: { manager.selectedSessionId = session.id },
+                        onDoubleClick: {
+                            editingSessionId = session.id
+                            editingName = session.name
+                        },
+                        onCommitRename: {
+                            session.name = editingName.trimmingCharacters(in: .whitespaces).isEmpty
+                                ? session.name : editingName
+                            editingSessionId = nil
+                        },
+                        onClose: { manager.removeSession(session.id) },
+                        showClose: manager.sessions.count > 1
+                    )
+                }
+
+                Button(action: { manager.addSession() }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .medium))
+                        .frame(width: 26, height: 26)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+                .help("新建终端会话")
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+        }
+        .background(Color(red: 0.08, green: 0.08, blue: 0.10))
+    }
+}
+
 // MARK: - Terminal Container
+
 struct TerminalContainer: View {
-    @ObservedObject var coordinator: TerminalCoordinator
+    @ObservedObject var manager: TerminalSessionManager
 
     var body: some View {
         VStack(spacing: 0) {
-            TerminalWebView(coordinator: coordinator)
+            SessionTabBar(manager: manager)
+
+            ZStack {
+                ForEach(manager.sessions) { session in
+                    TerminalWebView(coordinator: session.coordinator)
+                        .opacity(manager.selectedSessionId == session.id ? 1 : 0)
+                        .allowsHitTesting(manager.selectedSessionId == session.id)
+                }
+            }
 
             Divider()
 
-            // Bottom control bar
-            HStack {
-                if coordinator.isRunning {
-                    Button(action: { coordinator.interrupt() }) {
-                        Text("Ctrl+C")
-                            .font(.system(size: 10, weight: .medium))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
-                            .background(RoundedRectangle(cornerRadius: 3).fill(Color.red.opacity(0.3)))
-                            .foregroundColor(.red)
-                    }
-                    .buttonStyle(.plain)
-                    .help("发送中断信号 (SIGINT)")
+            if let session = manager.activeSession {
+                HStack {
+                    if session.coordinator.isRunning {
+                        Button(action: { session.coordinator.interrupt() }) {
+                            Text("Ctrl+C")
+                                .font(.system(size: 10, weight: .medium))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(RoundedRectangle(cornerRadius: 3).fill(Color.red.opacity(0.3)))
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(.plain)
+                        .help("发送中断信号 (SIGINT)")
 
-                    Text("终端运行中 — 直接在终端中输入命令")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
-                } else {
-                    Text("就绪")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
+                        Text("终端运行中 — 直接在终端中输入命令")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("就绪")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
                 }
-                Spacer()
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .background(Color.primary.opacity(0.03))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(Color.primary.opacity(0.03))
         }
     }
 }
