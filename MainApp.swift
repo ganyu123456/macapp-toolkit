@@ -14,6 +14,7 @@ struct MainApp: App {
     @StateObject private var wecomPushModel = WeComPushModel()
     @StateObject private var terminalSessionManager = TerminalSessionManager()
     @StateObject private var recordingModel = RecordingModel()
+    @StateObject private var calendarModel = CalendarModel()
 
     @State private var selectedTab = 0
 
@@ -27,6 +28,7 @@ struct MainApp: App {
                     Text("推送").tag(3)
                     Text("终端").tag(4)
                     Text("录音").tag(5)
+                    Text("日历").tag(6)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
@@ -50,6 +52,9 @@ struct MainApp: App {
                     case 5:
                         RecordingTab()
                             .environmentObject(recordingModel)
+                    case 6:
+                        CalendarTab()
+                            .environmentObject(calendarModel)
                     default:
                         Color.clear
                     }

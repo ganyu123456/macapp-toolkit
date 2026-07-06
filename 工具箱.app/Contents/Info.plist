@@ -33,5 +33,7 @@
     <string>工具箱需要访问麦克风以进行录音</string>
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>工具箱需要语音识别权限以将录音转写为文字</string>
+    <key>NSCalendarsUsageDescription</key>
+    <string>工具箱需要日历权限以显示您的日程和中国节假日</string>
 </dict>
 </plist>
